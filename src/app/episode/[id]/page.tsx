@@ -1,8 +1,29 @@
-'use client';
+import { notFound } from "next/navigation";
+import EpisodeDetail from "./EpisodeDetail";
+import {
+  getEpisodeById,
+  getTranscriptsByEpisodeId,
+  getVocabByEpisodeId,
+} from "@/lib/fetchEpisodeById";
 
-import EpisodeDetail from './EpisodeDetail';
-import { mockEpisodes } from '../../../lib/mockEpisode';
+export default async function EpisodePage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const episode = await getEpisodeById(params.id);
+  if (!episode) return notFound();
 
-export default function Page() {
-    return <EpisodeDetail episode={mockEpisodes[0]}></EpisodeDetail>;
+  const [transcripts, vocabItems] = await Promise.all([
+    getTranscriptsByEpisodeId(episode.id),
+    getVocabByEpisodeId(episode.id),
+  ]);
+
+  return (
+    <EpisodeDetail
+      episode={episode}
+      transcripts={transcripts}
+      vocabItems={vocabItems}
+    ></EpisodeDetail>
+  );
 }
