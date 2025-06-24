@@ -1,0 +1,77 @@
+import { ITranscript } from '@/types/episode.interface';
+
+export const mockTranscripts: ITranscript[] = [
+    {
+        id: '1',
+        episodeId: '009f4af4-11f7-6e31-5213-6c4420f36bda',
+        order: 1,
+        text: "Welcome to 6 Minute English, where we talk about interesting topics and useful vocabulary.",
+        speaker: 'Narrator',
+        startTime: 0,
+        endTime: 6,
+    },
+    {
+        id: '2',
+        episodeId: '009f4af4-11f7-6e31-5213-6c4420f36bda',
+        order: 2,
+        text: "Today we’re talking about personalised diets.",
+        speaker: 'Neil',
+        startTime: 6,
+        endTime: 9,
+    },
+    {
+        id: '3',
+        episodeId: '009f4af4-11f7-6e31-5213-6c4420f36bda',
+        order: 3,
+        text: "That means eating plans designed just for you based on your body, your habits, and even your genes.",
+        speaker: 'Sam',
+        startTime: 9,
+        endTime: 15,
+    },
+    {
+        id: '4',
+        episodeId: '009f4af4-11f7-6e31-5213-6c4420f36bda',
+        order: 4,
+        text: "Do they really help us get healthier? Let’s find out.",
+        speaker: 'Neil',
+        startTime: 15,
+        endTime: 18,
+    },
+    {
+        id: '5',
+        episodeId: '009f4af4-11f7-6e31-5213-6c4420f36bda',
+        order: 3,
+        text: "That means eating plans designed just for you based on your body, your habits, and even your genes.",
+        speaker: 'Sam',
+        startTime: 18,
+        endTime: 23,
+    },
+    {
+        id: '6',
+        episodeId: '009f4af4-11f7-6e31-5213-6c4420f36bda',
+        order: 4,
+        text: "Do they really help us get healthier? Let’s find out.",
+        speaker: 'Neil',
+        startTime: 23,
+        endTime: 30,
+    },
+        {
+        id: '7',
+        episodeId: '009f4af4-11f7-6e31-5213-6c4420f36bda',
+        order: 3,
+        text: "That means eating plans designed just for you based on your body, your habits, and even your genes.",
+        speaker: 'Sam',
+        startTime: 30,
+        endTime: 36,
+    },
+    {
+        id: '8',
+        episodeId: '009f4af4-11f7-6e31-5213-6c4420f36bda',
+        order: 4,
+        text: "Do they really help us get healthier? Let’s find out.",
+        speaker: 'Neil',
+        startTime: 36,
+        endTime: 44,
+    }
+
+];
