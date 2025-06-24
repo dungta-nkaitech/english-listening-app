@@ -6,11 +6,13 @@ import {
   getVocabByEpisodeId,
 } from "@/lib/fetchEpisodeById";
 
-export default async function EpisodePage({
-  params,
-}: {
-  params: { id: string };
-}) {
+type EpisodePageProps = {
+  params: {
+    id: string;
+  };
+};
+
+export default async function EpisodePage({ params }: EpisodePageProps) {
   const episode = await getEpisodeById(params.id);
   if (!episode) return notFound();
 
@@ -24,6 +26,6 @@ export default async function EpisodePage({
       episode={episode}
       transcripts={transcripts}
       vocabItems={vocabItems}
-    ></EpisodeDetail>
+    />
   );
 }
