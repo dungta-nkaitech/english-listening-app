@@ -6,7 +6,6 @@ const nextConfig: NextConfig = {
     SUPABASE_URL: process.env.SUPABASE_URL,
     SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
   },
-  output: "export",
   images: {
     domains: ["ichef.bbc.co.uk"], // Cho phép ảnh từ BBC
   },

@@ -29,7 +29,7 @@ function AudioPlayer({
     handleResize(); // lần đầu
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [window]);
+  }, []);
 
   // Cập nhật currentTime khi audio phát
   useEffect(() => {
@@ -46,7 +46,7 @@ function AudioPlayer({
       audio.removeEventListener("timeupdate", updateTime);
       audio.removeEventListener("loadedmetadata", setAudioDuration);
     };
-  }, []);
+  }, [audioRef, setCurrentTime]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
