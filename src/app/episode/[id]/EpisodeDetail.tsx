@@ -2,7 +2,7 @@
 
 import AudioPlayer from "@/app/components/AudioPlayer";
 import TranscriptList from "@/app/components/TranscriptList";
-import { IEpisode, ITranscript, IVocabItem } from "@/types/episode.interface";
+import { IEpisode, ITranscript } from "@/types/episode.interface";
 import { useEffect, useRef, useState } from "react";
 import NavigationBar from "./NavigationBar";
 
