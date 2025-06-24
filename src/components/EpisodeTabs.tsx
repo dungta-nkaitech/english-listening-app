@@ -41,9 +41,10 @@ export default function EpisodeTabs() {
     return () => {
       if (loaderRef.current) observer.unobserve(loaderRef.current);
     };
-  }, [loaderRef.current, hasMore, loading]);
+  }, [hasMore, loading]);
 
   const loadMore = async () => {
+    console.log("Load more");
     setLoading(true);
     const newEpisodes = await fetchEpisodesPage(page);
     setEpisodes((prev) => [...prev, ...newEpisodes]);
