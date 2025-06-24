@@ -1,11 +1,11 @@
-import { RefObject, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FaPause, FaPlay, FaHeart, FaCheckCircle } from "react-icons/fa";
 
 interface Props {
-  audioUrl: string;
+  audioUrl?: string;
   currentTime: number;
   setCurrentTime: React.Dispatch<React.SetStateAction<number>>;
-  audioRef: RefObject<HTMLAudioElement>;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
   isPlaying: boolean;
   setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
 }

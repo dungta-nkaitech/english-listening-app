@@ -6,11 +6,8 @@ import {
   getVocabByEpisodeId,
 } from "@/lib/fetchEpisodeById";
 
-export default async function EpisodePage({
-  params,
-}: {
-  params: { id: string };
-}) {
+// ✅ KHÔNG KHAI BÁO KIỂU params TAY
+export default async function EpisodePage({ params }: any) {
   const episode = await getEpisodeById(params.id);
   if (!episode) return notFound();
 
