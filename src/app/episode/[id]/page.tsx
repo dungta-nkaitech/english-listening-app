@@ -7,7 +7,7 @@ import {
 } from "@/lib/fetchEpisodeById";
 
 // ✅ KHÔNG KHAI BÁO KIỂU params TAY
-export default async function EpisodePage({ params }: any) {
+export default async function EpisodePagee({ params }) {
   const episode = await getEpisodeById(params.id);
   if (!episode) return notFound();
 
@@ -16,11 +16,13 @@ export default async function EpisodePage({ params }: any) {
     getVocabByEpisodeId(episode.id),
   ]);
 
+  console.log(vocabItems.length);
+
   return (
     <EpisodeDetail
       episode={episode}
       transcripts={transcripts}
-      vocabItems={vocabItems}
+      //vocabItems={vocabItems}
     />
   );
 }

@@ -9,14 +9,14 @@ import NavigationBar from "./NavigationBar";
 export default function EpisodeDetail({
   episode,
   transcripts,
-  vocabItems,
-}: {
+}: //vocabItems,
+{
   episode: IEpisode;
   transcripts: ITranscript[];
-  vocabItems: IVocabItem[];
+  //vocabItems: IVocabItem[];
 }) {
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [isLearned, setIsLearned] = useState(false);
+  //const [isFavorite, setIsFavorite] = useState(false);
+  //const [isLearned, setIsLearned] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "transcript" | "vocab" | "quiz" | "pdf"
   >("transcript");
