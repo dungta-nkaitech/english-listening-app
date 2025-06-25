@@ -6,6 +6,7 @@ export interface IEpisode {
   thumbnailUrl?: string;
   audioUrl?: string;
   pdfUrl?: string;
+  quizUrl?: string;
 }
 
 export interface ITranscript {

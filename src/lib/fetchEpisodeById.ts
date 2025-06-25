@@ -13,7 +13,18 @@ export async function getEpisodeById(id: string): Promise<IEpisode | null> {
     return null;
   }
 
-  return data;
+  const episode: IEpisode = {
+    id: data.id,
+    episodeUrl: data.episode_url,
+    title: data.title,
+    description: data.description,
+    thumbnailUrl: data.thumbnail_url,
+    audioUrl: data.audio_url,
+    pdfUrl: data.pdf_url,
+    quizUrl: data.quiz_url,
+  };
+
+  return episode;
 }
 
 export async function getTranscriptsByEpisodeId(
@@ -22,7 +33,7 @@ export async function getTranscriptsByEpisodeId(
   const { data, error } = await supabase
     .from("transcripts")
     .select("*")
-    .eq("episodeId", episodeId)
+    .eq("episode_id", episodeId)
     .order("order", { ascending: true });
 
   if (error) {
@@ -30,21 +41,38 @@ export async function getTranscriptsByEpisodeId(
     return [];
   }
 
-  return data;
+  const transcripts: ITranscript[] = data.map((item) => ({
+    id: item.id,
+    episodeId: item.episode_id,
+    order: item.order,
+    text: item.text,
+    startTime: item.start_time,
+    endTime: item.end_time,
+    speaker: item.speaker,
+  }));
+
+  return transcripts;
 }
 
 export async function getVocabByEpisodeId(
   episodeId: string
 ): Promise<IVocabItem[]> {
   const { data, error } = await supabase
-    .from("vocab")
+    .from("vocab_items")
     .select("*")
-    .eq("episodeId", episodeId);
+    .eq("episode_id", episodeId);
 
   if (error) {
     console.error("Error fetching vocab:", error);
     return [];
   }
 
-  return data;
+  const vocabItems: IVocabItem[] = data.map((item) => ({
+    id: item.id,
+    episodeId: item.episode_id,
+    word: item.word,
+    definition: item.definition,
+  }));
+
+  return vocabItems;
 }

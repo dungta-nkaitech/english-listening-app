@@ -14,5 +14,16 @@ export async function fetchEpisodesPage(page: number): Promise<IEpisode[]> {
     .order("id", { ascending: true });
 
   if (error) throw error;
-  return data || [];
+
+  const episodes: IEpisode[] = data.map((item) => ({
+    id: item.id,
+    episodeUrl: item.episode_url,
+    title: item.title,
+    description: item.description,
+    thumbnailUrl: item.thumbnail_url,
+    audioUrl: item.audio_url,
+    pdfUrl: item.pdf_url,
+    quizUrl: item.quiz_url,
+  }));
+  return episodes || [];
 }

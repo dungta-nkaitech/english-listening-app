@@ -1,19 +1,22 @@
 "use client";
 
 import AudioPlayer from "@/app/components/AudioPlayer";
-import TranscriptList from "@/app/components/TranscriptList";
-import { IEpisode, ITranscript } from "@/types/episode.interface";
+import TranscriptList, {
+  TranscriptListRef,
+} from "@/app/components/TranscriptList";
+import { IEpisode, ITranscript, IVocabItem } from "@/types/episode.interface";
 import { useEffect, useRef, useState } from "react";
 import NavigationBar from "./NavigationBar";
+import VocabList from "@/app/components/VocabList";
 
 export default function EpisodeDetail({
   episode,
   transcripts,
-}: //vocabItems,
-{
+  vocabItems,
+}: {
   episode: IEpisode;
   transcripts: ITranscript[];
-  //vocabItems: IVocabItem[];
+  vocabItems: IVocabItem[];
 }) {
   //const [isFavorite, setIsFavorite] = useState(false);
   //const [isLearned, setIsLearned] = useState(false);
@@ -21,9 +24,11 @@ export default function EpisodeDetail({
     "transcript" | "vocab" | "quiz" | "pdf"
   >("transcript");
 
+  const transcriptRef = useRef<TranscriptListRef>(null);
+
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const [topDivHeight, setTopDivHeight] = useState(0);
 
@@ -31,11 +36,12 @@ export default function EpisodeDetail({
 
   useEffect(() => {
     if (topDivRef.current) {
+      console.log("Top", topDivRef.current.offsetHeight);
       setTopDivHeight(topDivRef.current.offsetHeight);
     }
-  }, [topDivRef]); // [] để chạy 1 lần sau khi render
+  }, [topDivRef]);
 
-  if (!episode) return <div className="p-4">Không tìm thấy episode</div>;
+  if (!episode) return <div className="p-4">Can not load episode</div>;
 
   return (
     <div className="relative min-h-screen bg-[#fef6e4] text-[#000]">
@@ -72,29 +78,34 @@ export default function EpisodeDetail({
             ))}
           </div>
         </div>
-        {/* Transcription */}
-        {/* Transcript scrollable */}
         <div
           className="absolute left-0 right-0 overflow-y-auto px-4"
-          style={{ top: topDivHeight + 10, bottom: 150 }}
+          style={{ top: topDivHeight + 10, bottom: 200 }}
         >
-          <TranscriptList
-            transcripts={transcripts}
-            currentTime={currentTime}
-            onClickTranscript={(t) => {
-              if (audioRef.current) {
-                audioRef.current.currentTime = t.startTime;
-                audioRef.current.play(); // (tuỳ chọn)
-                setIsPlaying(true);
-              }
-            }}
-          />
+          {/* Transcription */}
+          {/* Transcript scrollable */}
+          {activeTab == "transcript" && (
+            <TranscriptList
+              ref={transcriptRef}
+              transcripts={transcripts}
+              currentTime={currentTime}
+              onClickTranscript={(t) => {
+                if (audioRef.current) {
+                  audioRef.current.currentTime = t.startTime;
+                  audioRef.current.play(); // (tuỳ chọn)
+                  setIsPlaying(true);
+                }
+              }}
+            />
+          )}
+          {activeTab == "vocab" && <VocabList vocabItems={vocabItems} />}
         </div>
       </div>
 
       {/* Audio Player */}
-      <div>
+      {episode.audioUrl && (
         <AudioPlayer
+          transcriptRef={transcriptRef}
           audioRef={audioRef}
           audioUrl={episode.audioUrl}
           currentTime={currentTime}
@@ -102,7 +113,7 @@ export default function EpisodeDetail({
           isPlaying={isPlaying}
           setIsPlaying={setIsPlaying}
         />
-      </div>
+      )}
     </div>
   );
 }
