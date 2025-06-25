@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { FaPause, FaPlay, FaHeart, FaCheckCircle } from "react-icons/fa";
 import { TranscriptListRef } from "./TranscriptList";
 

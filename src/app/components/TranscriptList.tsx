@@ -153,7 +153,9 @@ const TranscriptList = forwardRef<TranscriptListRef, Props>(
             return (
               <div
                 key={item.id}
-                ref={(el) => (itemRefs.current[i] = el)}
+                ref={(el) => {
+                  itemRefs.current[i] = el;
+                }}
                 className={`w-full py-1 text-[17px] leading-relaxed cursor-pointer ${
                   isActive ? "font-semibold text-black" : "text-gray-600"
                 }`}
