@@ -37,7 +37,7 @@ export async function getVocabByEpisodeId(
   episodeId: string
 ): Promise<IVocabItem[]> {
   const { data, error } = await supabase
-    .from("vocab")
+    .from("vocab_items")
     .select("*")
     .eq("episodeId", episodeId);
 

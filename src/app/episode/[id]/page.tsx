@@ -22,7 +22,7 @@ export default async function EpisodePagee({ params }) {
     <EpisodeDetail
       episode={episode}
       transcripts={transcripts}
-      //vocabItems={vocabItems}
+      vocabItems={vocabItems}
     />
   );
 }
