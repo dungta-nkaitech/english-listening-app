@@ -160,7 +160,7 @@ export default function AudioPlayer({
           </button>
           <button
             className="w-10 h-10 rounded-full bg-gray-200 shadow flex items-center justify-center text-gray-800 hover:bg-gray-400 transition"
-            onClick={() => skipTime(-50)}
+            onClick={() => skipTime(-5)}
           >
             -5s
           </button>
@@ -174,7 +174,7 @@ export default function AudioPlayer({
 
           <button
             className="w-10 h-10 rounded-full bg-gray-200 shadow flex items-center justify-center text-gray-800 hover:bg-gray-400 transition"
-            onClick={() => skipTime(50)}
+            onClick={() => skipTime(5)}
           >
             +5s
           </button>
