@@ -28,18 +28,27 @@ export async function fetchEpisodesPage(page: number): Promise<IEpisode[]> {
   return episodes || []
 }
 
-export async function fetchEpisodesSearch(search: string): Promise<IEpisode[]> {
-  const res = await fetch(`/api/episodes?search=${encodeURIComponent(search)}`)
-  const json = await res.json()
-  const episodes: IEpisode[] = json.data.map((item) => ({
-    id: item.id,
-    episodeUrl: item.episode_url,
-    title: item.title,
-    description: item.description,
-    thumbnailUrl: item.thumbnail_url,
-    audioUrl: item.audio_url,
-    pdfUrl: item.pdf_url,
-    quizUrl: item.quiz_url,
-  }))
-  return episodes || []
+export async function fetchEpisodesSearch(search: string, page: number): Promise<IEpisode[]> {
+    const res = await fetch(`/api/episodes?search=${encodeURIComponent(search)}&page=${page}`);
+    if (!res.ok) {
+        console.error("Failed to fetch search results:", res.statusText);
+        return [];
+    }
+
+    const json = await res.json();
+
+    if (!json.data) return [];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return json.data.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        thumbnailUrl: item.thumbnail_url,
+        audioUrl: item.audio_url,
+        pdfUrl: item.pdf_url,
+        createdAt: item.created_at,
+        episodeUrl: item.episode_url,
+        quizUrl: item.quiz_url,
+    }));
 }
