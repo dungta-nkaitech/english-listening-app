@@ -11,7 +11,7 @@ export default function NavigationBar() {
         className="flex items-center space-x-1 font-semibold"
       >
         <FaChevronLeft />
-        <span>EPISODE</span>
+        <span>ALL EPISODES</span>
       </button>
     </div>
   );
