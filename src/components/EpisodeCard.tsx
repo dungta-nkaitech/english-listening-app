@@ -4,23 +4,18 @@ import { IEpisode } from "../types/episode.interface";
 import Image from "next/image";
 import { useState } from "react";
 import { FaHeart, FaCheckCircle } from "react-icons/fa";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function EpisodeCard({ episode }: { episode: IEpisode }) {
   // State mô phỏng (sau này thay bằng real data/user)
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLearned, setIsLearned] = useState(false);
 
-  const router = useRouter();
-
-  const handleClick = () => {
-    router.push(`/episode/${episode.id}`);
-  };
-
   return (
-    <div
-      className="flex rounded-xl shadow-sm bg-white p-3 gap-3"
-      onClick={handleClick}
+    <Link
+      prefetch 
+      href={`/episode/${episode.id}`}
+      className="flex rounded-xl shadow-sm bg-white p-3 gap-3 hover:bg-gray-50 transition-colors"
     >
       {/* Thumbnail */}
       <div className="w-[110px] aspect-[3/2] overflow-hidden rounded-lg flex-shrink-0">
@@ -34,7 +29,7 @@ export default function EpisodeCard({ episode }: { episode: IEpisode }) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col  overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <h2 className="text-base font-semibold text-gray-800 leading-tight line-clamp-2">
           {episode.title}
         </h2>
@@ -44,11 +39,18 @@ export default function EpisodeCard({ episode }: { episode: IEpisode }) {
       </div>
 
       {/* Actions */}
-      <div className="flex flex-col items-center justify-center gap-3 px-1">
+      <div
+        className="flex flex-col items-center justify-center gap-3 px-1"
+        onClick={(e) => e.preventDefault()}
+      >
         {/* Favorite Button */}
         <button
           className="hover:scale-110 active:scale-95 transition-transform"
-          onClick={() => setIsFavorite((prev) => !prev)}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            setIsFavorite((prev) => !prev);
+          }}
         >
           <FaHeart
             size={20}
@@ -59,7 +61,11 @@ export default function EpisodeCard({ episode }: { episode: IEpisode }) {
         {/* Learned Button */}
         <button
           className="flex flex-col items-center text-[11px] hover:scale-105 active:scale-95 transition-transform"
-          onClick={() => setIsLearned((prev) => !prev)}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            setIsLearned((prev) => !prev);
+          }}
         >
           <FaCheckCircle
             size={20}
@@ -72,6 +78,6 @@ export default function EpisodeCard({ episode }: { episode: IEpisode }) {
           ></span>
         </button>
       </div>
-    </div>
+    </Link>
   );
 }
