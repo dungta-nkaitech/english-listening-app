@@ -26,3 +26,8 @@ export interface IVocabItem {
   definition: string;
   example?: string;
 }
+
+export interface IEpisodeWithStatus extends IEpisode {
+  isFavorite: boolean;
+  isLearned: boolean;
+}

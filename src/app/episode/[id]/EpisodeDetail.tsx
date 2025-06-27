@@ -6,7 +6,7 @@ import TranscriptList, {
 } from "@/app/components/TranscriptList";
 import { IEpisode, ITranscript, IVocabItem } from "@/types/episode.interface";
 import { useEffect, useRef, useState } from "react";
-import NavigationBar from "./NavigationBar";
+import NavigationBar from "@/components/NavigationBar";
 import VocabList from "@/app/components/VocabList";
 
 export default function EpisodeDetail({
