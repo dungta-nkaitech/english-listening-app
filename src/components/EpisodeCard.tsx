@@ -1,26 +1,75 @@
-"use client";
+'use client'
 
-import { IEpisode } from "../types/episode.interface";
-import Image from "next/image";
-import { useState } from "react";
-import { FaHeart, FaCheckCircle } from "react-icons/fa";
-import Link from "next/link";
+import { IEpisodeWithStatus } from '../types/episode.interface'
+import Image from 'next/image'
+import { useEffect, useState } from 'react'
+import { FaHeart, FaCheckCircle } from 'react-icons/fa'
+import Link from 'next/link'
 
-export default function EpisodeCard({ episode }: { episode: IEpisode }) {
-  // State mô phỏng (sau này thay bằng real data/user)
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [isLearned, setIsLearned] = useState(false);
+// Hard-coded user for this project
+const USER_ID = '88774f25-8043-4375-8a5e-3f6a0ea39374'
+
+export default function EpisodeCard({
+  episode,
+}: {
+  episode: IEpisodeWithStatus
+}) {
+  const [isFavorite, setIsFavorite] = useState(episode.isFavorite)
+  const [isLearned, setIsLearned] = useState(episode.isLearned)
+
+  // ✅ Sync state with props when parent re-renders with new data
+  useEffect(() => {
+    setIsFavorite(episode.isFavorite)
+  }, [episode.isFavorite])
+
+  useEffect(() => {
+    setIsLearned(episode.isLearned)
+  }, [episode.isLearned])
+
+  // Call API to toggle favorite
+  async function toggleFavorite(episodeId: string) {
+    try {
+      const res = await fetch('/api/favorites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: USER_ID, episodeId }),
+      })
+      if (!res.ok) throw new Error('Failed to update favorite')
+      setIsFavorite((prev) => !prev)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  // Call API to toggle learnt
+  async function toggleLearned(episodeId: string) {
+    try {
+      const res = await fetch('/api/learnt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: USER_ID, episodeId }),
+      })
+      if (!res.ok) throw new Error('Failed to update learnt')
+      setIsLearned((prev) => !prev)
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   return (
     <Link
-      prefetch 
+      prefetch
       href={`/episode/${episode.id}`}
-      className="flex rounded-xl shadow-sm bg-white p-3 gap-3 hover:bg-gray-50 transition-colors"
+      className={`flex rounded-xl shadow-sm p-3 gap-3 transition-colors ${
+        isLearned
+          ? 'bg-[#b5e6b8] hover:bg-[#d6e6d7]'
+          : 'bg-white hover:bg-gray-50'
+      }`}
     >
       {/* Thumbnail */}
       <div className="w-[110px] aspect-[3/2] overflow-hidden rounded-lg flex-shrink-0">
         <Image
-          src={episode.thumbnailUrl || "/images/placeholder.jpg"}
+          src={episode.thumbnailUrl || '/images/placeholder.jpg'}
           alt={episode.title}
           width={110}
           height={73}
@@ -47,14 +96,14 @@ export default function EpisodeCard({ episode }: { episode: IEpisode }) {
         <button
           className="hover:scale-110 active:scale-95 transition-transform"
           onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            setIsFavorite((prev) => !prev);
+            e.stopPropagation()
+            e.preventDefault()
+            toggleFavorite(episode.id)
           }}
         >
           <FaHeart
             size={20}
-            className={isFavorite ? "text-red-500" : "text-gray-300"}
+            className={isFavorite ? 'text-red-500' : 'text-gray-300'}
           />
         </button>
 
@@ -62,22 +111,17 @@ export default function EpisodeCard({ episode }: { episode: IEpisode }) {
         <button
           className="flex flex-col items-center text-[11px] hover:scale-105 active:scale-95 transition-transform"
           onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            setIsLearned((prev) => !prev);
+            e.stopPropagation()
+            e.preventDefault()
+            toggleLearned(episode.id)
           }}
         >
           <FaCheckCircle
             size={20}
-            className={isLearned ? "text-green-600" : "text-gray-300"}
+            className={isLearned ? 'text-green-600' : 'text-gray-300'}
           />
-          <span
-            className={
-              isLearned ? "text-green-600 mt-0.5" : "text-gray-400 mt-0.5"
-            }
-          ></span>
         </button>
       </div>
     </Link>
-  );
+  )
 }
