@@ -1,18 +1,16 @@
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { FaChevronLeft } from "react-icons/fa";
 
 export default function NavigationBar() {
-  const router = useRouter();
-
   return (
     <div className="flex items-center justify-between bg-green-800 text-white">
-      <button
-        onClick={() => router.push("/")}
-        className="flex items-center space-x-1 font-semibold"
+      <Link
+        href="/"
+        className="flex items-center space-x-1 font-semibold px-2 py-1"
       >
         <FaChevronLeft />
         <span>ALL EPISODES</span>
-      </button>
+      </Link>
     </div>
   );
 }

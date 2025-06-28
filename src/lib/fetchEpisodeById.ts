@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabaseClient"; // hoặc server tùy bạn dùng ở đâu
-import { IEpisode, ITranscript, IVocabItem } from "@/types/episode.interface";
+import { IEpisode, ITranscript } from "@/types/episode.interface";
+import { IUserVocabulary } from "@/types/vocabulary.interface";
 
 export async function getEpisodeById(id: string): Promise<IEpisode | null> {
   const { data, error } = await supabase
@@ -56,22 +57,27 @@ export async function getTranscriptsByEpisodeId(
 
 export async function getVocabByEpisodeId(
   episodeId: string
-): Promise<IVocabItem[]> {
+): Promise<IUserVocabulary[]> {
   const { data, error } = await supabase
     .from("vocab_items")
     .select("*")
     .eq("episode_id", episodeId);
+    
 
   if (error) {
     console.error("Error fetching vocab:", error);
     return [];
   }
 
-  const vocabItems: IVocabItem[] = data.map((item) => ({
+  const vocabItems: IUserVocabulary[] = data.map((item) => ({
     id: item.id,
-    episodeId: item.episode_id,
+    userId: item.user_id || null,
+    episodeId: item.episode_id || null,
     word: item.word,
     definition: item.definition,
+    example: item.example || null,
+    createdAt: item.created_at,
+    episodeTitle: item.episode_title || null
   }));
 
   return vocabItems;
