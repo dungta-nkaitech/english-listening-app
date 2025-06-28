@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/api/user-vocab/route.ts
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
