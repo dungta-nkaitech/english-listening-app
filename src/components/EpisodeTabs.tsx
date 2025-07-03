@@ -1,30 +1,30 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import { IEpisode, IEpisodeWithStatus } from '@/types/episode.interface';
-import EpisodeCard from './EpisodeCard';
-import { fetchEpisodesPage, fetchEpisodesSearch } from '../lib/fetchEpisodes';
-import { FaAngleDoubleUp } from 'react-icons/fa';
-import { MdOutlinePostAdd } from 'react-icons/md';
-import AddVocabularyForm from './AddVocabularyForm';
-import Link from 'next/link';
+import { useEffect, useRef, useState } from "react";
+import { IEpisode, IEpisodeWithStatus } from "@/types/episode.interface";
+import EpisodeCard from "./EpisodeCard";
+import { fetchEpisodesPage, fetchEpisodesSearch } from "../lib/fetchEpisodes";
+import { FaAngleDoubleUp } from "react-icons/fa";
+import { MdOutlinePostAdd } from "react-icons/md";
+import AddVocabularyForm from "./AddVocabularyForm";
+import Link from "next/link";
 
-const USER_ID = '88774f25-8043-4375-8a5e-3f6a0ea39374';
+const USER_ID = "88774f25-8043-4375-8a5e-3f6a0ea39374";
 const PAGE_SIZE = 20;
 
-type Tab = 'all' | 'favorites' | 'learned';
+type Tab = "all" | "favorites" | "learned";
 
 export default function EpisodeTabs() {
   const [episodes, setEpisodes] = useState<IEpisodeWithStatus[]>([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [currentTab, setCurrentTab] = useState<Tab>('all');
+  const [currentTab, setCurrentTab] = useState<Tab>("all");
 
   const loaderRef = useRef<HTMLDivElement>(null);
 
   /** Search states */
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<IEpisodeWithStatus[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchPage, setSearchPage] = useState(0);
@@ -48,12 +48,12 @@ export default function EpisodeTabs() {
   /** 2️⃣ Always refresh status and merge when window regains focus */
   useEffect(() => {
     const handleFocus = () => {
-      console.log('[EpisodeTabs] Window focus → refresh status and merge.');
+      console.log("[EpisodeTabs] Window focus → refresh status and merge.");
       refreshAllStatus();
     };
 
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   }, [episodes]);
 
   /** 3️⃣ Infinite scroll observer */
@@ -69,7 +69,7 @@ export default function EpisodeTabs() {
           }
         }
       },
-      { rootMargin: '100px' }
+      { rootMargin: "100px" }
     );
 
     if (loaderRef.current) observer.observe(loaderRef.current);
@@ -105,14 +105,9 @@ export default function EpisodeTabs() {
   /** 6️⃣ Backspace shortcut to clear search */
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Backspace' && isSearchMode()) {
+      if (e.key === "Backspace" && isSearchMode()) {
         const active = document.activeElement;
-        if (
-          active &&
-          (active.tagName === 'INPUT' ||
-            active.tagName === 'TEXTAREA' ||
-            active.getAttribute('contenteditable') === 'true')
-        ) {
+        if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.getAttribute("contenteditable") === "true")) {
           return;
         }
         e.preventDefault();
@@ -120,8 +115,8 @@ export default function EpisodeTabs() {
       }
     };
 
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, [searchTerm]);
 
   /** ✅ Load first page on mount */
@@ -172,13 +167,13 @@ export default function EpisodeTabs() {
   async function refreshAllStatus() {
     try {
       const res = await fetch(`/api/status?userId=${USER_ID}`);
-      if (!res.ok) throw new Error('Failed to fetch user status');
+      if (!res.ok) throw new Error("Failed to fetch user status");
       const data = await res.json();
 
       const favorites = data.favorites || [];
       const learnt = data.learnt || [];
 
-      console.log('[EpisodeTabs] Merging status from /api/status', data);
+      console.log("[EpisodeTabs] Merging status from /api/status", data);
 
       setEpisodes((prev) =>
         prev.map((ep) => ({
@@ -188,7 +183,7 @@ export default function EpisodeTabs() {
         }))
       );
     } catch (err) {
-      console.error('Error refreshing status:', err);
+      console.error("Error refreshing status:", err);
     }
   }
 
@@ -199,18 +194,12 @@ export default function EpisodeTabs() {
       const data = await res.json();
 
       if (data.episodeId) {
-        setEpisodes((prev) =>
-          prev.map((ep) =>
-            ep.id === episodeId
-              ? { ...ep, isFavorite: data.isFavorite, isLearned: data.isLearned }
-              : ep
-          )
-        );
+        setEpisodes((prev) => prev.map((ep) => (ep.id === episodeId ? { ...ep, isFavorite: data.isFavorite, isLearned: data.isLearned } : ep)));
       } else {
-        console.error('Invalid single-episode response:', data);
+        console.error("Invalid single-episode response:", data);
       }
     } catch (err) {
-      console.error('Error refreshing single episode:', err);
+      console.error("Error refreshing single episode:", err);
     }
   }
 
@@ -253,7 +242,7 @@ export default function EpisodeTabs() {
 
   /** Handle clear search */
   const handleClearSearch = () => {
-    setSearchTerm('');
+    setSearchTerm("");
     setSearchResults([]);
     setSearchPage(0);
     setSearchHasMore(true);
@@ -261,28 +250,60 @@ export default function EpisodeTabs() {
 
   /** Filter for tabs */
   const filtered = episodes.filter((ep) => {
-    if (currentTab === 'favorites') return ep.isFavorite;
-    if (currentTab === 'learned') return ep.isLearned;
+    if (currentTab === "favorites") return ep.isFavorite;
+    if (currentTab === "learned") return ep.isLearned;
     return true;
   });
 
   /** Scroll to top listener */
   useEffect(() => {
     const handleScroll = () => setShowScrollTop(window.scrollY > 300);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const scrollToTop = () => {
     window.scrollTo({
       top: listRef.current?.offsetTop || 0,
-      behavior: 'smooth',
+      behavior: "smooth",
     });
   };
+
+  const [showGlobalLoading, setShowGlobalLoading] = useState(false);
+
+  async function handleSaveVocabulary(data) {
+    setShowGlobalLoading(true);
+
+    try {
+      const res = await fetch("/api/user-vocab", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          userId: USER_ID,
+        }),
+      });
+
+      if (!res.ok) {
+        alert("Failed to save vocabulary.");
+        return;
+      }
+    } catch (error) {
+      console.error("Error saving vocabulary:", error);
+      alert("Something went wrong while saving vocabulary.");
+    } finally {
+      setShowGlobalLoading(false);
+    }
+  }
 
   /** Render */
   return (
     <div>
+      {showGlobalLoading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-green-700 border-opacity-50"></div>
+        </div>
+      )}
       {/* Search Box */}
       <div className="flex items-center gap-2 mb-4">
         <input
@@ -293,10 +314,7 @@ export default function EpisodeTabs() {
           className="flex-1 px-3 py-2 border rounded-lg text-sm"
         />
         {isSearchMode() && (
-          <button
-            onClick={handleClearSearch}
-            className="px-3 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition"
-          >
+          <button onClick={handleClearSearch} className="px-3 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition">
             Back
           </button>
         )}
@@ -305,21 +323,15 @@ export default function EpisodeTabs() {
       {/* Tabs */}
       {!isSearchMode() && (
         <div className="flex gap-2 mb-3">
-          {['all', 'favorites', 'learned'].map((tab) => (
+          {["all", "favorites", "learned"].map((tab) => (
             <button
               key={tab}
               onClick={() => setCurrentTab(tab as Tab)}
               className={`px-3 py-1 rounded-full text-sm font-medium transition ${
-                currentTab === tab
-                  ? 'bg-green-700 text-white'
-                  : 'bg-gray-200 text-gray-700'
+                currentTab === tab ? "bg-green-700 text-white" : "bg-gray-200 text-gray-700"
               }`}
             >
-              {tab === 'all'
-                ? 'All Episodes'
-                : tab === 'favorites'
-                ? 'Favorites'
-                : 'Learned'}
+              {tab === "all" ? "All Episodes" : tab === "favorites" ? "Favorites" : "Learned"}
             </button>
           ))}
           <Link
@@ -334,27 +346,23 @@ export default function EpisodeTabs() {
       {/* Cards */}
       <div className="space-y-3" ref={listRef}>
         {(isSearchMode() ? searchResults : filtered).map((ep) => (
-          <EpisodeCard
-            key={ep.id}
-            episode={ep}
-            onStatusUpdated={refreshSingleEpisode}
-          />
+          <EpisodeCard key={ep.id} episode={ep} onStatusUpdated={refreshSingleEpisode} />
         ))}
 
         <div ref={loaderRef} className="py-4 text-center text-gray-500 text-sm">
           {isSearchMode()
             ? searchLoading && searchHasMore
-              ? 'Loading...'
+              ? "Loading..."
               : searchHasMore
-              ? 'Scroll to load more'
+              ? "Scroll to load more"
               : searchResults.length === 0
-              ? 'No results found.'
-              : 'All loaded'
+              ? "No results found."
+              : "All loaded"
             : loading && hasMore
-            ? 'Loading...'
+            ? "Loading..."
             : hasMore
-            ? 'Scroll to load more'
-            : 'All loaded'}
+            ? "Scroll to load more"
+            : "All loaded"}
         </div>
       </div>
 
@@ -372,10 +380,7 @@ export default function EpisodeTabs() {
               </button>
             )}
             {showScrollTop && (
-              <button
-                onClick={scrollToTop}
-                className="p-3 rounded-full bg-[#1b5e20] text-white shadow-lg hover:scale-110 transition"
-              >
+              <button onClick={scrollToTop} className="p-3 rounded-full bg-[#1b5e20] text-white shadow-lg hover:scale-110 transition">
                 <FaAngleDoubleUp />
               </button>
             )}
@@ -383,12 +388,7 @@ export default function EpisodeTabs() {
         </div>
       )}
 
-      {showAddForm && (
-        <AddVocabularyForm
-          onClose={() => setShowAddForm(false)}
-          onSave={() => setShowAddForm(false)}
-        />
-      )}
+      {showAddForm && <AddVocabularyForm onClose={() => setShowAddForm(false)} onSave={handleSaveVocabulary} />}
     </div>
-  )
+  );
 }
