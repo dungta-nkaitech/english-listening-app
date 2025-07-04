@@ -9,9 +9,9 @@ const supabase = createClient(
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = context.params;
+  const { id } = await context.params;
   if (!id) {
     return NextResponse.json({ error: "Missing ID" }, { status: 400 });
   }
