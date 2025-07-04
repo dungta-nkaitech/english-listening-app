@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import type { RouteHandlerContext } from "next/dist/server/web/types";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,10 +9,9 @@ const supabase = createClient(
 
 export async function PATCH(
   req: NextRequest,
-  context: RouteHandlerContext
+  context: { params: { id: string } }
 ) {
   const { id } = context.params;
-
   if (!id) {
     return NextResponse.json({ error: "Missing ID" }, { status: 400 });
   }
@@ -56,9 +54,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  context: RouteHandlerContext
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = context.params;
+  const { id } = await context.params;
 
   if (!id) {
     return NextResponse.json({ error: "Missing ID" }, { status: 400 });
