@@ -1,292 +1,309 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, useState } from 'react'
-import { IEpisode, IEpisodeWithStatus } from '@/types/episode.interface'
-import EpisodeCard from './EpisodeCard'
-import { fetchEpisodesPage, fetchEpisodesSearch } from '../lib/fetchEpisodes'
-import { FaAngleDoubleUp } from 'react-icons/fa'
-import { MdOutlinePostAdd } from 'react-icons/md'
-import AddVocabularyForm from './AddVocabularyForm'
-import Link from 'next/link'
+import { useEffect, useRef, useState } from "react";
+import { IEpisode, IEpisodeWithStatus } from "@/types/episode.interface";
+import EpisodeCard from "./EpisodeCard";
+import { fetchEpisodesPage, fetchEpisodesSearch } from "../lib/fetchEpisodes";
+import { FaAngleDoubleUp } from "react-icons/fa";
+import { MdOutlinePostAdd } from "react-icons/md";
+import AddVocabularyForm from "./AddVocabularyForm";
+import Link from "next/link";
 
-const USER_ID = '88774f25-8043-4375-8a5e-3f6a0ea39374'
+const USER_ID = "88774f25-8043-4375-8a5e-3f6a0ea39374";
+const PAGE_SIZE = 20;
 
-type Tab = 'all' | 'favorites' | 'learned'
-
-const PAGE_SIZE = 20
+type Tab = "all" | "favorites" | "learned";
 
 export default function EpisodeTabs() {
-  const [episodes, setEpisodes] = useState<IEpisodeWithStatus[]>([])
-  const [page, setPage] = useState(0)
-  const [loading, setLoading] = useState(false)
-  const [hasMore, setHasMore] = useState(true)
-  const [currentTab, setCurrentTab] = useState<Tab>('all')
+  const [episodes, setEpisodes] = useState<IEpisodeWithStatus[]>([]);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [currentTab, setCurrentTab] = useState<Tab>("all");
 
-  const [status, setStatus] = useState<{
-    favorites: string[]
-    learnt: string[]
-  }>({
-    favorites: [],
-    learnt: [],
-  })
-
-  const loaderRef = useRef<HTMLDivElement>(null)
+  const loaderRef = useRef<HTMLDivElement>(null);
 
   /** Search states */
-  const [searchTerm, setSearchTerm] = useState('')
-  const [searchResults, setSearchResults] = useState<IEpisodeWithStatus[]>([])
-  const [searchLoading, setSearchLoading] = useState(false)
-  const [searchPage, setSearchPage] = useState(0)
-  const [searchHasMore, setSearchHasMore] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<IEpisodeWithStatus[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchPage, setSearchPage] = useState(0);
+  const [searchHasMore, setSearchHasMore] = useState(true);
 
   /** Scroll to top button */
-  const [showScrollTop, setShowScrollTop] = useState(false)
-  const listRef = useRef<HTMLDivElement>(null)
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
 
-  // show add Vocabulary Form
-  const [showAddForm, setShowAddForm] = useState(false)
+  /** show add Vocabulary Form */
+  const [showAddForm, setShowAddForm] = useState(false);
 
-  /** 1️⃣ Load user status once on mount */
+  /** 1️⃣ First load on mount: load episodes + status */
   useEffect(() => {
-    async function loadStatus() {
-      const res = await fetch(`/api/status?userId=${USER_ID}`)
-      const data = await res.json()
-      setStatus(data)
+    async function init() {
+      await loadFirstPage();
     }
-    loadStatus()
-  }, [])
+    init();
+  }, []);
 
-  /** 2️⃣ When status changes, reset episodes and reload from page 0 */
+  /** 2️⃣ Always refresh status and merge when window regains focus */
   useEffect(() => {
-    setEpisodes([])
-    setPage(0)
-    setHasMore(true)
+    const handleFocus = () => {
+      console.log("[EpisodeTabs] Window focus → refresh status and merge.");
+      refreshAllStatus();
+    };
 
-    if (!isSearchMode()) {
-      loadMore(0)
-    }
-  }, [status])
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [episodes]);
 
   /** 3️⃣ Infinite scroll observer */
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        const target = entries[0]
+        const target = entries[0];
         if (target.isIntersecting) {
           if (isSearchMode()) {
-            if (!searchLoading && searchHasMore) loadMoreSearch()
+            if (!searchLoading && searchHasMore) loadMoreSearch();
           } else {
-            if (!loading && hasMore) loadMore(page)
+            if (!loading && hasMore) loadMore(page);
           }
         }
       },
-      { rootMargin: '100px' }
-    )
-    if (loaderRef.current) observer.observe(loaderRef.current)
+      { rootMargin: "100px" }
+    );
+
+    if (loaderRef.current) observer.observe(loaderRef.current);
     return () => {
-      if (loaderRef.current) observer.unobserve(loaderRef.current)
-    }
-  }, [loading, hasMore, searchLoading, searchHasMore, searchTerm, page, status])
+      if (loaderRef.current) observer.unobserve(loaderRef.current);
+    };
+  }, [loading, hasMore, searchLoading, searchHasMore, searchTerm, page]);
 
   /** 4️⃣ Check if in search mode */
-  const isSearchMode = () => searchTerm.trim().length >= 2
+  const isSearchMode = () => searchTerm.trim().length >= 2;
 
   /** 5️⃣ Debounced search trigger */
   useEffect(() => {
     if (!isSearchMode()) {
-      setSearchResults([])
-      setSearchPage(0)
-      setSearchHasMore(true)
-      return
+      setSearchResults([]);
+      setSearchPage(0);
+      setSearchHasMore(true);
+      return;
     }
 
-    setSearchLoading(true)
-    setSearchResults([])
-    setSearchPage(0)
-    setSearchHasMore(true)
+    setSearchLoading(true);
+    setSearchResults([]);
+    setSearchPage(0);
+    setSearchHasMore(true);
 
     const timer = setTimeout(() => {
-      loadFirstPageSearch()
-    }, 400)
+      loadFirstPageSearch();
+    }, 400);
 
-    return () => clearTimeout(timer)
-  }, [searchTerm, status])
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   /** 6️⃣ Backspace shortcut to clear search */
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Backspace' && isSearchMode()) {
-        const active = document.activeElement
-        if (
-          active &&
-          (active.tagName === 'INPUT' ||
-            active.tagName === 'TEXTAREA' ||
-            active.getAttribute('contenteditable') === 'true')
-        ) {
-          return
+      if (e.key === "Backspace" && isSearchMode()) {
+        const active = document.activeElement;
+        if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.getAttribute("contenteditable") === "true")) {
+          return;
         }
-        e.preventDefault()
-        handleClearSearch()
+        e.preventDefault();
+        handleClearSearch();
       }
-    }
-    window.addEventListener('keydown', handleGlobalKeyDown)
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown)
-  }, [searchTerm])
+    };
 
-  /** 7️⃣ Load more episodes (normal mode) */
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [searchTerm]);
+
+  /** ✅ Load first page on mount */
+  const loadFirstPage = async () => {
+    setLoading(true);
+    setPage(0);
+    setHasMore(true);
+
+    const newEpisodes = await fetchEpisodesPage(0);
+    const newEpisodesWithStatus: IEpisodeWithStatus[] = newEpisodes.map((ep) => ({
+      ...ep,
+      isFavorite: false,
+      isLearned: false,
+    }));
+
+    setEpisodes(newEpisodesWithStatus);
+    setPage(1);
+    setLoading(false);
+
+    await refreshAllStatus();
+  };
+
+  /** ✅ Load more episodes with status merge */
   const loadMore = async (targetPage: number) => {
-    setLoading(true)
+    setLoading(true);
 
-    const newEpisodes = await fetchEpisodesPage(targetPage)
+    const newEpisodes = await fetchEpisodesPage(targetPage);
+    const newEpisodesWithStatus: IEpisodeWithStatus[] = newEpisodes.map((ep) => ({
+      ...ep,
+      isFavorite: false,
+      isLearned: false,
+    }));
 
     setEpisodes((prev) => {
-      const newEpisodesWithStatus = newEpisodes.map((ep) => ({
-        ...ep,
-        isFavorite: status.favorites.includes(ep.id),
-        isLearned: status.learnt.includes(ep.id),
-      }))
-      const merged = [...prev, ...newEpisodesWithStatus]
-      const unique = Array.from(
-        new Map(merged.map((ep) => [ep.id, ep])).values()
-      )
-      return unique
-    })
+      const merged = [...prev, ...newEpisodesWithStatus];
+      return Array.from(new Map(merged.map((ep) => [ep.id, ep])).values());
+    });
 
-    setPage((prev) => prev + 1)
-    if (newEpisodes.length < PAGE_SIZE) setHasMore(false)
-    setLoading(false)
+    setPage((prev) => prev + 1);
+    if (newEpisodes.length < PAGE_SIZE) setHasMore(false);
+    setLoading(false);
+
+    // 🔥 Merge new status from server immediately
+    await refreshAllStatus();
+  };
+
+  /** ✅ Refresh status for ALL loaded episodes */
+  async function refreshAllStatus() {
+    try {
+      const res = await fetch(`/api/status?userId=${USER_ID}`);
+      if (!res.ok) throw new Error("Failed to fetch user status");
+      const data = await res.json();
+
+      const favorites = data.favorites || [];
+      const learnt = data.learnt || [];
+
+      console.log("[EpisodeTabs] Merging status from /api/status", data);
+
+      setEpisodes((prev) =>
+        prev.map((ep) => ({
+          ...ep,
+          isFavorite: favorites.includes(ep.id),
+          isLearned: learnt.includes(ep.id),
+        }))
+      );
+    } catch (err) {
+      console.error("Error refreshing status:", err);
+    }
   }
 
-  /** 8️⃣ Load first page of search */
-  const loadFirstPageSearch = async () => {
-    const results: IEpisode[] = await fetchEpisodesSearch(searchTerm.trim(), 0)
+  /** ✅ Refresh single episode (from EpisodeCard) */
+  async function refreshSingleEpisode(episodeId: string) {
+    try {
+      const res = await fetch(`/api/status?userId=${USER_ID}&episodeId=${episodeId}`);
+      const data = await res.json();
 
+      if (data.episodeId) {
+        setEpisodes((prev) => prev.map((ep) => (ep.id === episodeId ? { ...ep, isFavorite: data.isFavorite, isLearned: data.isLearned } : ep)));
+      } else {
+        console.error("Invalid single-episode response:", data);
+      }
+    } catch (err) {
+      console.error("Error refreshing single episode:", err);
+    }
+  }
+
+  /** Load first page of search */
+  const loadFirstPageSearch = async () => {
+    const results: IEpisode[] = await fetchEpisodesSearch(searchTerm.trim(), 0);
     const resultsWithStatus: IEpisodeWithStatus[] = results.map((ep) => ({
       ...ep,
-      isFavorite: status.favorites.includes(ep.id),
-      isLearned: status.learnt.includes(ep.id),
-    }))
+      isFavorite: false,
+      isLearned: false,
+    }));
 
-    setSearchResults(resultsWithStatus)
-    if (results.length < PAGE_SIZE) setSearchHasMore(false)
-    setSearchPage(1)
-    setSearchLoading(false)
-  }
+    setSearchResults(resultsWithStatus);
+    if (results.length < PAGE_SIZE) setSearchHasMore(false);
+    setSearchPage(1);
+    setSearchLoading(false);
+  };
 
-  /** 9️⃣ Load more search results */
+  /** Load more search results */
   const loadMoreSearch = async () => {
-    setSearchLoading(true)
+    setSearchLoading(true);
 
-    const newResults: IEpisode[] = await fetchEpisodesSearch(
-      searchTerm.trim(),
-      searchPage
-    )
-
+    const newResults: IEpisode[] = await fetchEpisodesSearch(searchTerm.trim(), searchPage);
     const newResultsWithStatus: IEpisodeWithStatus[] = newResults.map((ep) => ({
       ...ep,
-      isFavorite: status.favorites.includes(ep.id),
-      isLearned: status.learnt.includes(ep.id),
-    }))
+      isFavorite: false,
+      isLearned: false,
+    }));
 
     setSearchResults((prev) => {
-      const merged = [...prev, ...newResultsWithStatus]
-      const unique = Array.from(
-        new Map(merged.map((ep) => [ep.id, ep])).values()
-      )
-      return unique
-    })
+      const merged = [...prev, ...newResultsWithStatus];
+      const unique = Array.from(new Map(merged.map((ep) => [ep.id, ep])).values());
+      return unique;
+    });
 
-    setSearchPage((prev) => prev + 1)
-    if (newResults.length < PAGE_SIZE) setSearchHasMore(false)
-    setSearchLoading(false)
-  }
+    setSearchPage((prev) => prev + 1);
+    if (newResults.length < PAGE_SIZE) setSearchHasMore(false);
+    setSearchLoading(false);
+  };
 
   /** Handle clear search */
   const handleClearSearch = () => {
-    setSearchTerm('')
-    setSearchResults([])
-    setSearchPage(0)
-    setSearchHasMore(true)
-  }
+    setSearchTerm("");
+    setSearchResults([]);
+    setSearchPage(0);
+    setSearchHasMore(true);
+  };
 
   /** Filter for tabs */
   const filtered = episodes.filter((ep) => {
-    if (currentTab === 'favorites') return ep.isFavorite
-    if (currentTab === 'learned') return ep.isLearned
-    return true
-  })
+    if (currentTab === "favorites") return ep.isFavorite;
+    if (currentTab === "learned") return ep.isLearned;
+    return true;
+  });
 
   /** Scroll to top listener */
   useEffect(() => {
-    const handleScroll = () => setShowScrollTop(window.scrollY > 300)
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+    const handleScroll = () => setShowScrollTop(window.scrollY > 300);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const scrollToTop = () => {
     window.scrollTo({
       top: listRef.current?.offsetTop || 0,
-      behavior: 'smooth',
-    })
-  }
+      behavior: "smooth",
+    });
+  };
 
-  async function updateEpisodeStatus(episodeId: string) {
-    const res = await fetch(
-      `/api/status?userId=${USER_ID}&episodeId=${episodeId}`
-    )
-    const data = await res.json()
+  const [showGlobalLoading, setShowGlobalLoading] = useState(false);
 
-    if (data.episodeId) {
-      setEpisodes((prev) =>
-        prev.map((ep) =>
-          ep.id === episodeId
-            ? { ...ep, isFavorite: data.isFavorite, isLearned: data.isLearned }
-            : ep
-        )
-      )
-    } else {
-      console.error('Invalid single-episode response:', data)
-    }
-  }
+  async function handleSaveVocabulary(data) {
+    setShowGlobalLoading(true);
 
-  async function handleSaveVocabulary(data: {
-    word: string
-    definition: string
-    example: string
-  }) {
     try {
-      const payload = {
-        ...data,
-        userId: USER_ID,
-      }
-      // Gọi Next.js API route
-      const res = await fetch('/api/user-vocab', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      })
+      const res = await fetch("/api/user-vocab", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          userId: USER_ID,
+        }),
+      });
 
       if (!res.ok) {
-        const errorData = await res.json()
-        console.error('API error:', errorData)
-        alert(
-          'Failed to save vocabulary: ' + (errorData.error || res.statusText)
-        )
-        return
+        alert("Failed to save vocabulary.");
+        return;
       }
-
-      console.log('Vocabulary saved!')
-      setShowAddForm(false)
     } catch (error) {
-      console.error('Error saving vocabulary:', error)
-      alert('Something went wrong while saving vocabulary.')
+      console.error("Error saving vocabulary:", error);
+      alert("Something went wrong while saving vocabulary.");
+    } finally {
+      setShowGlobalLoading(false);
     }
   }
 
+  /** Render */
   return (
     <div>
+      {showGlobalLoading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-green-700 border-opacity-50"></div>
+        </div>
+      )}
       {/* Search Box */}
       <div className="flex items-center gap-2 mb-4">
         <input
@@ -297,10 +314,7 @@ export default function EpisodeTabs() {
           className="flex-1 px-3 py-2 border rounded-lg text-sm"
         />
         {isSearchMode() && (
-          <button
-            onClick={handleClearSearch}
-            className="px-3 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition"
-          >
+          <button onClick={handleClearSearch} className="px-3 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition">
             Back
           </button>
         )}
@@ -309,21 +323,15 @@ export default function EpisodeTabs() {
       {/* Tabs */}
       {!isSearchMode() && (
         <div className="flex gap-2 mb-3">
-          {['all', 'favorites', 'learned'].map((tab) => (
+          {["all", "favorites", "learned"].map((tab) => (
             <button
               key={tab}
               onClick={() => setCurrentTab(tab as Tab)}
               className={`px-3 py-1 rounded-full text-sm font-medium transition ${
-                currentTab === tab
-                  ? 'bg-green-700 text-white'
-                  : 'bg-gray-200 text-gray-700'
+                currentTab === tab ? "bg-green-700 text-white" : "bg-gray-200 text-gray-700"
               }`}
             >
-              {tab === 'all'
-                ? 'All Episodes'
-                : tab === 'favorites'
-                ? 'Favorites'
-                : 'Learned'}
+              {tab === "all" ? "All Episodes" : tab === "favorites" ? "Favorites" : "Learned"}
             </button>
           ))}
           <Link
@@ -337,53 +345,28 @@ export default function EpisodeTabs() {
 
       {/* Cards */}
       <div className="space-y-3" ref={listRef}>
-        {isSearchMode() ? (
-          <>
-            {searchResults.map((ep) => (
-              <EpisodeCard
-                key={ep.id}
-                episode={ep}
-                onStatusUpdated={updateEpisodeStatus}
-              />
-            ))}
+        {(isSearchMode() ? searchResults : filtered).map((ep) => (
+          <EpisodeCard key={ep.id} episode={ep} onStatusUpdated={refreshSingleEpisode} />
+        ))}
 
-            <div
-              ref={loaderRef}
-              className="py-4 text-center text-gray-500 text-sm"
-            >
-              {searchLoading && searchHasMore
-                ? 'Loading...'
-                : searchHasMore
-                ? 'Scroll to load more'
-                : searchResults.length === 0
-                ? 'No results found.'
-                : 'All loaded'}
-            </div>
-          </>
-        ) : (
-          <>
-            {filtered.map((ep) => (
-              <EpisodeCard
-                key={ep.id}
-                episode={ep}
-                onStatusUpdated={updateEpisodeStatus}
-              />
-            ))}
-
-            <div
-              ref={loaderRef}
-              className="py-4 text-center text-gray-500 text-sm"
-            >
-              {loading && hasMore
-                ? 'Loading...'
-                : hasMore
-                ? 'Scroll to load more'
-                : 'All loaded'}
-            </div>
-          </>
-        )}
+        <div ref={loaderRef} className="py-4 text-center text-gray-500 text-sm">
+          {isSearchMode()
+            ? searchLoading && searchHasMore
+              ? "Loading..."
+              : searchHasMore
+              ? "Scroll to load more"
+              : searchResults.length === 0
+              ? "No results found."
+              : "All loaded"
+            : loading && hasMore
+            ? "Loading..."
+            : hasMore
+            ? "Scroll to load more"
+            : "All loaded"}
+        </div>
       </div>
 
+      {/* Bottom Add Form / Scroll Up */}
       {(showScrollTop || !showAddForm) && (
         <div className="fixed bottom-4 left-0 right-0 px-4">
           <div className="mx-auto w-full max-w-[430px] flex justify-between items-center">
@@ -397,10 +380,7 @@ export default function EpisodeTabs() {
               </button>
             )}
             {showScrollTop && (
-              <button
-                onClick={scrollToTop}
-                className="p-3 rounded-full bg-[#1b5e20] text-white shadow-lg hover:scale-110 transition"
-              >
+              <button onClick={scrollToTop} className="p-3 rounded-full bg-[#1b5e20] text-white shadow-lg hover:scale-110 transition">
                 <FaAngleDoubleUp />
               </button>
             )}
@@ -408,12 +388,7 @@ export default function EpisodeTabs() {
         </div>
       )}
 
-      {showAddForm && (
-        <AddVocabularyForm
-          onClose={() => setShowAddForm(false)}
-          onSave={handleSaveVocabulary}
-        />
-      )}
+      {showAddForm && <AddVocabularyForm onClose={() => setShowAddForm(false)} onSave={handleSaveVocabulary} />}
     </div>
-  )
+  );
 }

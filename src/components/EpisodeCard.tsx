@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { FaHeart, FaCheckCircle } from "react-icons/fa";
 import Link from "next/link";
 
-// Hard-coded user for this project
 const USER_ID = "88774f25-8043-4375-8a5e-3f6a0ea39374";
 
 export default function EpisodeCard({
@@ -19,7 +18,7 @@ export default function EpisodeCard({
   const [isFavorite, setIsFavorite] = useState(episode.isFavorite);
   const [isLearned, setIsLearned] = useState(episode.isLearned);
 
-  // ✅ Sync state with props when parent re-renders with new data
+  // Đồng bộ lại khi props thay đổi từ cha
   useEffect(() => {
     setIsFavorite(episode.isFavorite);
   }, [episode.isFavorite]);
@@ -28,35 +27,40 @@ export default function EpisodeCard({
     setIsLearned(episode.isLearned);
   }, [episode.isLearned]);
 
-  // Call API to toggle favorite
-  async function toggleFavorite(episodeId: string) {
+  async function handleToggleFavorite() {
     try {
       const res = await fetch("/api/favorites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: USER_ID, episodeId }),
+        body: JSON.stringify({ userId: USER_ID, episodeId: episode.id }),
       });
       if (!res.ok) throw new Error("Failed to update favorite");
-      setIsFavorite((prev) => !prev);
-      onStatusUpdated(episodeId);
+
+      const data = await res.json();
+      setIsFavorite(data.status === "added");
+
+      // Yêu cầu cha reload trạng thái thật từ server
+      onStatusUpdated(episode.id);
     } catch (err) {
-      console.error(err);
+      console.error("Error toggling favorite", err);
     }
   }
 
-  // Call API to toggle learnt
-  async function toggleLearned(episodeId: string) {
+  async function handleToggleLearned() {
     try {
       const res = await fetch("/api/learnt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: USER_ID, episodeId }),
+        body: JSON.stringify({ userId: USER_ID, episodeId: episode.id }),
       });
       if (!res.ok) throw new Error("Failed to update learnt");
-      setIsLearned((prev) => !prev);
-      onStatusUpdated(episodeId);
+
+      const data = await res.json();
+      setIsLearned(data.status === "added");
+
+      onStatusUpdated(episode.id);
     } catch (err) {
-      console.error(err);
+      console.error("Error toggling learnt", err);
     }
   }
 
@@ -70,7 +74,6 @@ export default function EpisodeCard({
           : "bg-white hover:bg-gray-50"
       }`}
     >
-      {/* Thumbnail */}
       <div className="w-[110px] aspect-[3/2] overflow-hidden rounded-lg flex-shrink-0">
         <Image
           src={episode.thumbnailUrl || "/images/placeholder.jpg"}
@@ -81,7 +84,6 @@ export default function EpisodeCard({
         />
       </div>
 
-      {/* Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <h2 className="text-base font-semibold text-gray-800 leading-tight line-clamp-2">
           {episode.title}
@@ -91,18 +93,16 @@ export default function EpisodeCard({
         </p>
       </div>
 
-      {/* Actions */}
       <div
         className="flex flex-col items-center justify-center gap-3 px-1"
         onClick={(e) => e.preventDefault()}
       >
-        {/* Favorite Button */}
         <button
           className="hover:scale-110 active:scale-95 transition-transform"
           onClick={(e) => {
             e.stopPropagation();
             e.preventDefault();
-            toggleFavorite(episode.id);
+            handleToggleFavorite();
           }}
         >
           <FaHeart
@@ -111,13 +111,12 @@ export default function EpisodeCard({
           />
         </button>
 
-        {/* Learned Button */}
         <button
           className="flex flex-col items-center text-[11px] hover:scale-105 active:scale-95 transition-transform"
           onClick={(e) => {
             e.stopPropagation();
             e.preventDefault();
-            toggleLearned(episode.id);
+            handleToggleLearned();
           }}
         >
           <FaCheckCircle

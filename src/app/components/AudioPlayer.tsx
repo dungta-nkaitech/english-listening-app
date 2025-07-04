@@ -1,17 +1,21 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { FaPause, FaPlay, FaHeart, FaCheckCircle } from "react-icons/fa";
-import { TranscriptListRef } from "./TranscriptList";
+import { useEffect, useState } from 'react'
+import { FaPause, FaPlay, FaHeart, FaCheckCircle } from 'react-icons/fa'
+import { TranscriptListRef } from './TranscriptList'
 
 interface Props {
-  audioUrl: string;
-  currentTime: number;
-  setCurrentTime: React.Dispatch<React.SetStateAction<number>>;
-  audioRef: React.RefObject<HTMLAudioElement | null>;
-  isPlaying: boolean;
-  setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
-  transcriptRef: React.RefObject<TranscriptListRef | null>;
+  audioUrl: string
+  currentTime: number
+  setCurrentTime: React.Dispatch<React.SetStateAction<number>>
+  audioRef: React.RefObject<HTMLAudioElement | null>
+  isPlaying: boolean
+  setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>
+  transcriptRef: React.RefObject<TranscriptListRef | null>
+  isFavorite: boolean
+  isLearned: boolean
+  toggleFavorite: () => void
+  toggleLearnt: () => void
 }
 
 export default function AudioPlayer({
@@ -22,116 +26,120 @@ export default function AudioPlayer({
   isPlaying,
   setIsPlaying,
   transcriptRef,
+  isFavorite,
+  isLearned,
+  toggleFavorite,
+  toggleLearnt,
 }: Props) {
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(0)
 
   // Cập nhật currentTime khi audio phát
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    const audio = audioRef.current
+    if (!audio) return
 
     const updateTime = () => {
-      setCurrentTime(audio.currentTime);
-    };
+      setCurrentTime(audio.currentTime)
+    }
 
-    audio.addEventListener("timeupdate", updateTime);
+    audio.addEventListener('timeupdate', updateTime)
     return () => {
-      audio.removeEventListener("timeupdate", updateTime);
-    };
-  }, [audioRef, setCurrentTime]);
+      audio.removeEventListener('timeupdate', updateTime)
+    }
+  }, [audioRef, setCurrentTime])
 
   // Gắn loadedmetadata để lấy duration
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    const audio = audioRef.current
+    if (!audio) return
 
     const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
-    };
+      setDuration(audio.duration)
+    }
 
-    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata)
 
     if (audio.readyState >= 1 && !isNaN(audio.duration) && audio.duration > 0) {
-      handleLoadedMetadata();
+      handleLoadedMetadata()
     }
 
     return () => {
-      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-    };
-  }, [audioUrl, audioRef]);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata)
+    }
+  }, [audioUrl, audioRef])
 
   // Bắt phím tắt: Space / ArrowLeft / ArrowRight
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      const tag = (e.target as HTMLElement).tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
 
-      const audio = audioRef.current;
-      if (!audio) return;
+      const audio = audioRef.current
+      if (!audio) return
 
       switch (e.code) {
-        case "Space":
-          e.preventDefault();
-          togglePlay();
-          break;
-        case "ArrowLeft":
-          e.preventDefault();
-          skipTime(-5);
-          break;
-        case "ArrowRight":
-          e.preventDefault();
-          skipTime(5);
-          break;
+        case 'Space':
+          e.preventDefault()
+          togglePlay()
+          break
+        case 'ArrowLeft':
+          e.preventDefault()
+          skipTime(-5)
+          break
+        case 'ArrowRight':
+          e.preventDefault()
+          skipTime(5)
+          break
       }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [audioRef, isPlaying]);
-
-  const togglePlay = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.play();
     }
 
-    setIsPlaying(!isPlaying);
-  };
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [audioRef, isPlaying])
+
+  const togglePlay = () => {
+    const audio = audioRef.current
+    if (!audio) return
+
+    if (isPlaying) {
+      audio.pause()
+    } else {
+      audio.play()
+    }
+
+    setIsPlaying(!isPlaying)
+  }
 
   const skipTime = (sec: number) => {
-    const audio = audioRef.current;
-    if (!audio || !audio.duration || isNaN(audio.duration)) return;
+    const audio = audioRef.current
+    if (!audio || !audio.duration || isNaN(audio.duration)) return
 
     const newTime = Math.max(
       0,
       Math.min(audio.currentTime + sec, audio.duration)
-    );
-    audio.currentTime = newTime;
-    setCurrentTime(newTime);
-    transcriptRef.current?.scrollToActive();
-  };
+    )
+    audio.currentTime = newTime
+    setCurrentTime(newTime)
+    transcriptRef.current?.scrollToActive()
+  }
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    const audio = audioRef.current
+    if (!audio) return
 
-    const newTime = Number(e.target.value);
-    audio.currentTime = newTime;
-    setCurrentTime(newTime);
-    transcriptRef.current?.scrollToActive();
-  };
+    const newTime = Number(e.target.value)
+    audio.currentTime = newTime
+    setCurrentTime(newTime)
+    transcriptRef.current?.scrollToActive()
+  }
 
   const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${minutes}:${secs.toString().padStart(2, "0")}`;
-  };
+    const minutes = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${minutes}:${secs.toString().padStart(2, '0')}`
+  }
 
   return (
     <div className="fixed bottom-0 w-full max-w-[430px]">
@@ -150,13 +158,18 @@ export default function AudioPlayer({
         {/* Thời gian */}
         <div className="w-full mt-1 flex justify-between text-sm text-gray-600">
           <span>{formatTime(currentTime)}</span>
-          <span>{duration ? formatTime(duration) : "..."}</span>
+          <span>{duration ? formatTime(duration) : '...'}</span>
         </div>
 
         {/* Control buttons */}
         <div className="flex items-center justify-center space-x-10 mt-2">
-          <button className="rounded-full shadow flex items-center justify-center hover:scale-110 transition">
-            <FaHeart />
+          <button
+            onClick={toggleFavorite}
+            className={`rounded-full shadow flex items-center justify-center hover:scale-110 transition ${
+              isFavorite ? 'text-red-600' : 'text-gray-500'
+            }`}
+          >
+            <FaHeart  size={30}/>
           </button>
           <button
             className="w-10 h-10 rounded-full bg-gray-200 shadow flex items-center justify-center text-gray-800 hover:bg-gray-400 transition"
@@ -178,13 +191,18 @@ export default function AudioPlayer({
           >
             +5s
           </button>
-          <button className="tex flex items-center justify-center hover:scale-110 transition">
-            <FaCheckCircle />
+          <button
+            onClick={toggleLearnt}
+            className={`rounded-full shadow flex items-center justify-center hover:scale-110 transition ${
+              isLearned ? 'text-green-600' : 'text-gray-500'
+            }`}
+          >
+            <FaCheckCircle  size={30}/>
           </button>
         </div>
 
         <audio ref={audioRef} src={audioUrl} preload="auto" />
       </div>
     </div>
-  );
+  )
 }
