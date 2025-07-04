@@ -1,13 +1,18 @@
-// app/api/user-vocab/[id]/route.ts
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import type { RouteHandlerContext } from "next/dist/server/web/types";
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-// ✅ PATCH /api/user-vocab/:id
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const id = params.id;
+export async function PATCH(
+  req: NextRequest,
+  context: RouteHandlerContext
+) {
+  const { id } = context.params;
 
   if (!id) {
     return NextResponse.json({ error: "Missing ID" }, { status: 400 });
@@ -17,7 +22,6 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const body = await req.json();
     const { word, definition, example, episodeId, episodeTitle } = body;
 
-    // ⚠️ kiểm tra tối thiểu
     if (!word) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
@@ -50,16 +54,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
-// ✅ DELETE /api/user-vocab/:id
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const id = params.id;
+export async function DELETE(
+  req: NextRequest,
+  context: RouteHandlerContext
+) {
+  const { id } = context.params;
 
   if (!id) {
     return NextResponse.json({ error: "Missing ID" }, { status: 400 });
   }
 
   try {
-    const { error } = await supabase.from("user_vocab_items").delete().eq("id", id);
+    const { error } = await supabase
+      .from("user_vocab_items")
+      .delete()
+      .eq("id", id);
 
     if (error) {
       console.error(error);
