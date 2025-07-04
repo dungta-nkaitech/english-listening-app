@@ -18,7 +18,7 @@ export default function VocabularyItem({ item, onEdit, onDelete, hideEpisodeLink
         {item.example && <p className="italic text-gray-600">Example: {item.example}</p>}
         {!hideEpisodeLink && item.episodeId && (
           <>
-            <span className="text-sm text-black-600 inline-block mt-1 mr-1">Episode:</span>
+            <span className="text-sm text-gray-600 inline-block mt-1 mr-1">Episode:</span>
             <Link href={`/episode/${item.episodeId}`} className="text-sm text-blue-600 underline inline-block mt-1">
               {`${item.episodeTitle}`}
             </Link>
